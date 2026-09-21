@@ -2,47 +2,74 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#07030f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alecita">
+<meta name="format-detection" content="telephone=no">
 <title>Mi alecita</title>
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#07030f;--gold:#ffd23f;--soft:#fff3c4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-html,body{height:100%;margin:0;background:var(--bg);overflow:hidden;color:var(--soft)}
-canvas{position:fixed;inset:0;width:100%;height:100%;touch-action:none;cursor:pointer}
-.title{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 22px);text-align:center;pointer-events:none}
-.title h1{margin:0;font:400 clamp(46px,11vw,84px) 'Great Vibes',cursive,serif;color:var(--gold);text-shadow:0 0 18px rgba(255,210,63,.7),0 0 46px rgba(255,140,0,.45)}
-.title p{margin:2px 0 0;font:italic 500 clamp(14px,3.6vw,18px) 'Cormorant Garamond',Georgia,serif;letter-spacing:.14em;opacity:.8}
-.hint{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 26px);text-align:center;font:italic 500 17px 'Cormorant Garamond',Georgia,serif;letter-spacing:.12em;opacity:.75;pointer-events:none;animation:pulse 2.6s ease-in-out infinite;transition:opacity 1s}
-.hint.off{opacity:0!important;animation:none}
-@keyframes pulse{50%{opacity:.35}}
-.ph{position:fixed;width:max-content;max-width:min(78vw,320px);text-align:center;font:italic 500 clamp(21px,5.4vw,28px)/1.25 'Cormorant Garamond',Georgia,serif;color:#fff8dc;text-shadow:0 0 12px rgba(255,190,60,.9),0 0 28px rgba(160,80,255,.7);pointer-events:none;animation:rise 6s ease forwards}
+:root{--bg:#07030f;--gold:#ffd23f;--soft:#fff3c4}
+*{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+html,body{position:fixed;inset:0;width:100%;height:100%;margin:0;background:var(--bg);overflow:hidden;overscroll-behavior:none;touch-action:none;color:var(--soft)}
+canvas{position:fixed;left:0;top:0;touch-action:none;cursor:pointer;display:block}
+.title{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 22px);padding:0 12px;text-align:center;pointer-events:none}
+.title h1{margin:0;font:400 clamp(44px,12vw,84px) 'Great Vibes',cursive,serif;color:var(--gold);text-shadow:0 0 18px rgba(255,210,63,.7),0 0 46px rgba(255,140,0,.45)}
+.title p{margin:2px 0 0;font:italic 500 clamp(15px,4vw,18px) 'Cormorant Garamond',Georgia,serif;letter-spacing:.14em;opacity:.8;animation:pulse 2.6s ease-in-out infinite;transition:opacity 1s}
+.title p.off{opacity:0!important;animation:none}
+@keyframes pulse{50%{opacity:.4}}
+.ph{position:fixed;width:max-content;max-width:min(80vw,320px);text-align:center;font:italic 500 clamp(21px,5.6vw,28px)/1.25 'Cormorant Garamond',Georgia,serif;color:#fff8dc;text-shadow:0 0 12px rgba(255,190,60,.9),0 0 28px rgba(160,80,255,.7);pointer-events:none;animation:rise 6s ease forwards}
 @keyframes rise{0%{opacity:0;transform:translate(-50%,-30%) scale(.94)}15%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-95%) scale(1)}}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<div class="title"><h1>Para ti mi Alecita</h1><p>Toca la pantalla</p></div>
-<div class="hint" id="hint"></div>
+<div class="title"><h1>Para ti mi Alecita</h1><p id="sub">Toca la pantalla</p></div>
 <script>
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const coarse=matchMedia('(pointer:coarse)').matches,mobile=coarse||innerWidth<700;
 let W,H,R,cx,cy;
-function rs(){const D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;ctx.setTransform(D,0,0,D,0,0);R=Math.min(W,H*.9)*.47;cx=W/2;cy=H*.52}
-addEventListener('resize',rs);rs();
+function rs(){
+  const D=Math.min(devicePixelRatio||1,mobile?1.5:2);
+  W=innerWidth;H=innerHeight;
+  cv.style.width=W+'px';cv.style.height=H+'px';
+  cv.width=Math.round(W*D);cv.height=Math.round(H*D);
+  ctx.setTransform(D,0,0,D,0,0);
+  R=Math.min(W,H*.9)*.47;cx=W/2;cy=H*.52;
+}
+addEventListener('resize',rs);addEventListener('orientationchange',()=>setTimeout(rs,250));
+if(window.visualViewport)visualViewport.addEventListener('resize',rs);
+document.addEventListener('gesturestart',e=>e.preventDefault());
+rs();
 const rnd=(a,b)=>a+Math.random()*(b-a),TAU=Math.PI*2,ARMS=3;
 
-const stars=Array.from({length:280},()=>({x:Math.random(),y:Math.random(),s:rnd(.3,1.6),p:rnd(0,TAU),v:rnd(.6,2.2)}));
-const parts=Array.from({length:1700},(_,i)=>{const t=Math.pow(Math.random(),.75);return{t,base:(i%ARMS)*TAU/ARMS+t*4.2+rnd(-.4,.4)*(.25+t),s:rnd(.6,2.1),l:rnd(0,1)}});
-const flowers=Array.from({length:34},()=>{const t=rnd(.12,.96);return{t,base:Math.floor(Math.random()*ARMS)*TAU/ARMS+t*4.2+rnd(-.25,.25),size:rnd(9,20),rot:rnd(0,TAU),rv:rnd(-.6,.6),n:[5,6,8][Math.floor(Math.random()*3)]}});
+const stars=Array.from({length:mobile?200:280},()=>({x:Math.random(),y:Math.random(),s:rnd(.4,1.8),p:rnd(0,TAU),v:rnd(.6,2.2)}));
+const parts=Array.from({length:mobile?1000:1700},(_,i)=>{const t=Math.pow(Math.random(),.75);return{t,base:(i%ARMS)*TAU/ARMS+t*4.2+rnd(-.4,.4)*(.25+t),s:rnd(.8,2.3)*(mobile?1.15:1),l:rnd(0,1)}});
+const flowers=Array.from({length:mobile?26:34},()=>{const t=rnd(.12,.96);return{t,base:Math.floor(Math.random()*ARMS)*TAU/ARMS+t*4.2+rnd(-.25,.25),size:rnd(9,20),rot:rnd(0,TAU),rv:rnd(-.6,.6),n:[5,6,8][Math.floor(Math.random()*3)]}});
+
+// sprite de brillo (más rápido en celulares que crear un gradiente por flor)
+const glow=document.createElement('canvas');glow.width=glow.height=64;
+{const c=glow.getContext('2d'),g=c.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,210,63,.5)');g.addColorStop(1,'rgba(255,210,63,0)');c.fillStyle=g;c.fillRect(0,0,64,64)}
 
 let tilt=.48,plane=-.4,tt=.48,tp=-.4;
 addEventListener('pointermove',e=>{tt=.38+e.clientY/H*.25;tp=-.55+e.clientX/W*.3});
+// inclinar el celular mueve la galaxia (Android; en iPhone no se pide ningún permiso)
+if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission!=='function'){
+  addEventListener('deviceorientation',e=>{
+    if(e.gamma==null||e.beta==null)return;
+    tp=-.55+(Math.max(-30,Math.min(30,e.gamma))+30)/60*.3;
+    tt=.38+Math.max(0,Math.min(60,e.beta-20))/60*.25;
+  });
+}
 
 function flower(x,y,s,rot,n,a){
   ctx.save();ctx.translate(x,y);ctx.globalAlpha=a;
-  const g=ctx.createRadialGradient(0,0,0,0,0,s*1.9);g.addColorStop(0,'rgba(255,210,63,.5)');g.addColorStop(1,'rgba(255,210,63,0)');
-  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,s*1.9,0,TAU);ctx.fill();
-  ctx.rotate(rot);ctx.strokeStyle='rgba(255,140,0,.65)';ctx.lineWidth=.7;
-  for(let i=0;i<n;i++){ctx.rotate(TAU/n);ctx.beginPath();ctx.ellipse(0,-s*.55,s*.27,s*.52,0,0,TAU);ctx.fillStyle='#ffd23f';ctx.fill();ctx.stroke()}
+  ctx.drawImage(glow,-s*1.9,-s*1.9,s*3.8,s*3.8);
+  ctx.rotate(rot);ctx.strokeStyle='rgba(255,140,0,.65)';ctx.lineWidth=.7;ctx.fillStyle='#ffd23f';
+  for(let i=0;i<n;i++){ctx.rotate(TAU/n);ctx.beginPath();ctx.ellipse(0,-s*.55,s*.27,s*.52,0,0,TAU);ctx.fill();ctx.stroke()}
   ctx.fillStyle='#e85d04';ctx.beginPath();ctx.arc(0,0,s*.24,0,TAU);ctx.fill();
   ctx.fillStyle='#ffba08';ctx.beginPath();ctx.arc(0,0,s*.11,0,TAU);ctx.fill();
   ctx.restore();
@@ -50,30 +77,34 @@ function flower(x,y,s,rot,n,a){
 
 const bursts=[],rings=[],blooms=[];
 function tap(x,y){
-  for(let i=0;i<30;i++){const a=rnd(0,TAU),v=rnd(1,4.5);bursts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,r:rnd(0,TAU),s:rnd(3,7),petal:i<20})}
+  for(let i=0;i<(mobile?24:30);i++){const a=rnd(0,TAU),v=rnd(1,4.5);bursts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,r:rnd(0,TAU),s:rnd(3,7),petal:i<16})}
+  if(bursts.length>160)bursts.splice(0,bursts.length-160);
   rings.push({x,y,r:6,life:1});
   blooms.push({x,y,born:performance.now(),size:rnd(18,28),rot:rnd(0,TAU)});
-  if(blooms.length>10)blooms.shift();
+  if(blooms.length>8)blooms.shift();
 }
 
-const phrases=["Tal vez en otra vida si pudimos estar juntos mi Alecita.","Gracias por lo bonito que fuimos.","Contigo todo fue real. Y eso no se borra.","Ojalá la vida te abrace siempre bonito mi Alecita.","Te deseo lo mejor del mundoo.","Agradezco todos los momentos felices que tuve contigo, jamas los voy a olvidar.","Siempre vas a estar en un pedacito de mi corazon mi Alecita.","Que te encuentre lo bueno donde sea que estés.","Siempre voy a estar aqui para ti mi Alecita nunca lo olvides.","Te recuerdo con cariño, sin peso.","Siempre te voy a querer.","Brilla, mi alecita como Siempre lo has hecho.","A veces despedirse también es una forma de querer.","Espero que logres todas tus metas.","Aunque ya no hablemos, te deseo lo mejor del mundo.","Fuiste un capítulo importante. No me arrepiento de haberte leído."];
+const phrases=["Tal vez en otra vida sí pudimos estar juntos, mi Alecita.","Gracias por lo bonito que fuimos.","Contigo todo fue real. Y eso no se borra.","Ojalá la vida te abrace siempre bonito, mi Alecita.","Te deseo lo mejor del mundo.","Agradezco todos los momentos felices que tuve contigo, jamás los voy a olvidar.","Siempre vas a estar en un pedacito de mi corazón, mi Alecita.","Que te encuentre lo bueno donde sea que estés.","Siempre voy a estar aquí para ti, mi Alecita, nunca lo olvides.","Te recuerdo con cariño, sin peso.","Siempre te voy a querer.","Brilla, mi Alecita, como siempre lo has hecho.","A veces despedirse también es una forma de querer.","Espero que logres todas tus metas.","Aunque ya no hablemos, te deseo lo mejor del mundo.","Fuiste un capítulo importante. No me arrepiento de haberte leído."];
 let deck=[];
 function phrase(x,y){
   if(!deck.length)deck=phrases.slice().sort(()=>Math.random()-.5);
   const el=document.createElement('div');el.className='ph';el.textContent=deck.pop();
-  const half=Math.min(W*.39,160)+10;
+  const half=Math.min(W*.4,160)+10;
+  if(coarse)y-=90; // que el dedo no tape la frase
   el.style.left=Math.min(Math.max(x,half),W-half)+'px';
-  el.style.top=Math.min(Math.max(y,120),H-90)+'px';
+  el.style.top=Math.min(Math.max(y,150),H-90)+'px';
   el.addEventListener('animationend',()=>el.remove());document.body.appendChild(el);
 }
 let first=true;
 cv.addEventListener('pointerdown',e=>{
+  e.preventDefault();
   tap(e.clientX,e.clientY);phrase(e.clientX,e.clientY);
-  if(first){first=false;document.getElementById('hint').classList.add('off')}
+  if(first){first=false;document.getElementById('sub').classList.add('off')}
 });
 
 let last=performance.now();
 function frame(now){
+  if(now-last<12){requestAnimationFrame(frame);return} // máx. ~60 fps: cuida la batería
   const t=now/1000,dt=Math.min((now-last)/16.7,3);last=now;
   tilt+=(tt-tilt)*.05;plane+=(tp-plane)*.05;
   const ca=Math.cos(plane),sa=Math.sin(plane);
@@ -87,8 +118,9 @@ function frame(now){
   ctx.globalCompositeOperation='lighter';
   for(const s of stars){const a=.35+.65*Math.abs(Math.sin(t*s.v+s.p));ctx.fillStyle=`rgba(255,244,214,${a*.85})`;ctx.fillRect(s.x*W,s.y*H,s.s,s.s)}
   for(const [nx,ny,c] of [[-.55,-.2,'150,60,255'],[.5,.25,'255,90,160'],[.1,.45,'255,170,40']]){
-    g=ctx.createRadialGradient(cx+nx*R,cy+ny*R*.6,0,cx+nx*R,cy+ny*R*.6,R*.8);
-    g.addColorStop(0,`rgba(${c},.13)`);g.addColorStop(1,`rgba(${c},0)`);ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
+    const gx=cx+nx*R,gy=cy+ny*R*.6;
+    g=ctx.createRadialGradient(gx,gy,0,gx,gy,R*.8);
+    g.addColorStop(0,`rgba(${c},.14)`);g.addColorStop(1,`rgba(${c},0)`);ctx.fillStyle=g;ctx.fillRect(gx-R*.8,gy-R*.8,R*1.6,R*1.6)}
   g=ctx.createRadialGradient(cx,cy,0,cx,cy,R*.55);
   g.addColorStop(0,'rgba(255,240,180,.75)');g.addColorStop(.3,'rgba(255,190,60,.35)');g.addColorStop(1,'rgba(255,140,0,0)');
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R*.55,0,TAU);ctx.fill();
@@ -96,20 +128,21 @@ function frame(now){
   for(const p of parts){
     const a=p.base+t*.07/(.3+p.t),[x,y]=P(a,p.t*R+Math.sin(t+p.l*9)*1.5);
     const h=(50-Math.max(0,p.t-.35)/.65*110+360)%360,l=82-p.t*22;
-    ctx.fillStyle=`hsla(${h},100%,${l}%,${.75-p.t*.3})`;ctx.fillRect(x,y,p.s,p.s);
+    ctx.fillStyle=`hsla(${h|0},100%,${l|0}%,${(.78-p.t*.3).toFixed(2)})`;ctx.fillRect(x,y,p.s,p.s);
   }
 
   ctx.globalCompositeOperation='source-over';
+  const fs=Math.min(Math.max(R/300,.75),1.25);
   for(const f of flowers){
     const a=f.base+t*.07/(.3+f.t),[x,y,d]=P(a,f.t*R);
-    flower(x,y,f.size*(.78+.3*d)*(R/300>1.2?1.2:Math.max(R/300,.7)),f.rot+t*f.rv,f.n,.95);
+    flower(x,y,f.size*(.78+.3*d)*fs,f.rot+t*f.rv,f.n,.95);
   }
   const nowMs=performance.now();
   for(let i=blooms.length-1;i>=0;i--){
     const b=blooms[i],age=(nowMs-b.born)/1000;
     if(age>9){blooms.splice(i,1);continue}
     const k=Math.min(age/.8,1),e=1-Math.pow(1-k,3),fade=age>7?1-(age-7)/2:1;
-    flower(b.x,b.y-age*4,b.size*e,b.rot+age*.5,8,fade);
+    flower(b.x,b.y-age*4,b.size*e*fs,b.rot+age*.5,8,fade);
   }
 
   ctx.globalCompositeOperation='lighter';
